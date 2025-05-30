@@ -32,11 +32,11 @@ This is a purely visual project, made for practice and entertainment. No actual 
    cd github-contribution-graph
 
 2.  npm install
-    # or
+    ## or
     yarn install
 
 3.  npm run dev
-    # or
+    ## or
     yarn dev
 
 
