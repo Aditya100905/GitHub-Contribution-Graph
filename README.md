@@ -14,15 +14,15 @@ This is a purely visual project, made for practice and entertainment. No actual 
 
 - Built with React and Tailwind CSS
 - Dynamic grid generation
-- Customizable intensity levels (green shades)
+- Customizable texts
 - Responsive layout
 - Clean and readable component structure
 
 ## 🛠️ Tech Stack
 
-- ⚛️ React (Vite / CRA / Next.js — depending on what you used)
+- ⚛️ React
 - 🎨 Tailwind CSS
-- 🧠 JavaScript (or TypeScript, if used)
+- 🧠 JavaScript
 
 ## 📦 Getting Started
 
