@@ -28,8 +28,8 @@ This is a purely visual project, made for practice and entertainment. No actual 
 
 1. Clone the repository  
    ```bash
-   git clone https://github.com/yourusername/github-contribution-graph-clone.git
-   cd github-contribution-graph-clone
+   git clone https://github.com/Aditya100905/GutHub-Contribution-Graph.git
+   cd github-contribution-graph
 
 2.  npm install
     # or
@@ -40,4 +40,4 @@ This is a purely visual project, made for practice and entertainment. No actual 
     yarn dev
 
 
-4.  Open http://localhost:3000 in your browser
+4.  Open http://localhost:5173 in your browser
