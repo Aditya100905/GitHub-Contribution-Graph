@@ -18,13 +18,27 @@ const GitHubContributionGraph = () => {
   const [textError, setTextError] = useState("");
   const graphRef = useRef(null);
 
+  // Load text from sessionStorage on component mount
+  useEffect(() => {
+    const savedText = sessionStorage.getItem("contributionText");
+    if (savedText) {
+      setCustomText(savedText);
+      setInputText(savedText);
+    }
+  }, []);
+
+  // Save text to sessionStorage whenever customText changes
+  useEffect(() => {
+    sessionStorage.setItem("contributionText", customText);
+  }, [customText]);
+
   // Calculate maximum characters that can fit
   const calculateMaxCharacters = () => {
     const totalWeeks = 68;
     const spaceWidth = 1; // Space between words
     const letterWidth = 3; // Most letters are 3 width
     const wideCharWidth = 4; // G, X, U are 4 width
-    
+
     // For simplicity, assume worst case (all wide chars) to be safe
     // Actually calculate based on input for better accuracy
     return Math.floor(totalWeeks / (wideCharWidth + 1)); // +1 for spacing
@@ -32,13 +46,13 @@ const GitHubContributionGraph = () => {
 
   // Get character width - updated to include M, W as width 5 and N as width 6
   const getCharWidth = (char) => {
-    if (['M', 'W'].includes(char)) {
+    if (["M", "W"].includes(char)) {
       return 5;
-    } else if (char === 'N') {
+    } else if (char === "N") {
       return 6;
-    } else if (['G', 'X', 'U'].includes(char)) {
+    } else if (["G", "X", "U"].includes(char)) {
       return 4;
-    } else if (char === ' ') {
+    } else if (char === " ") {
       return 1;
     } else {
       return 3; // Default width for most letters
@@ -49,17 +63,17 @@ const GitHubContributionGraph = () => {
   const validateText = (text) => {
     const totalWeeks = 68;
     let totalWidth = 0;
-    
+
     for (let i = 0; i < text.length; i++) {
       const char = text[i];
       totalWidth += getCharWidth(char);
-      
+
       // Add spacing between characters (except last one)
       if (i < text.length - 1) {
         totalWidth += 1;
       }
     }
-    
+
     return totalWidth <= totalWeeks;
   };
 
@@ -106,13 +120,17 @@ const GitHubContributionGraph = () => {
       // Place the letter - centered vertically
       const patternHeight = Math.min(pattern.length, 7);
       const verticalOffset = Math.floor((7 - patternHeight) / 2);
-      
+
       for (let col = 0; col < charWidth && col < pattern[0]?.length; col++) {
         for (let row = 0; row < patternHeight; row++) {
           const targetRow = row + verticalOffset;
-          if (currentCol + col < totalWeeks && 
-              targetRow >= 0 && targetRow < totalRows &&
-              pattern[row] && pattern[row][col] !== undefined) {
+          if (
+            currentCol + col < totalWeeks &&
+            targetRow >= 0 &&
+            targetRow < totalRows &&
+            pattern[row] &&
+            pattern[row][col] !== undefined
+          ) {
             finalPattern[targetRow][currentCol + col] = pattern[row][col];
           }
         }
@@ -190,35 +208,43 @@ const GitHubContributionGraph = () => {
 
   const handleTextSubmit = () => {
     const trimmedText = inputText.trim().toUpperCase();
-    
+
     if (!trimmedText) {
       setTextError("Please enter some text");
       return;
     }
-    
+
     if (!validateText(trimmedText)) {
-      setTextError("Text is too long to fit in the contribution graph. Please use shorter text.");
+      setTextError(
+        "Text is too long to fit in the contribution graph. Please use shorter text."
+      );
       return;
     }
-    
+
     // Check if all characters have patterns (assuming you have patterns defined)
-    const unsupportedChars = trimmedText.split('').filter(char => 
-      char !== ' ' && !patterns[char]
-    );
-    
+    const unsupportedChars = trimmedText
+      .split("")
+      .filter((char) => char !== " " && !patterns[char]);
+
     if (unsupportedChars.length > 0 && Object.keys(patterns).length > 0) {
-      setTextError(`Unsupported characters: ${[...new Set(unsupportedChars)].join(', ')}`);
+      setTextError(
+        `Unsupported characters: ${[...new Set(unsupportedChars)].join(", ")}`
+      );
       return;
     }
-    
+
     setTextError("");
     setCustomText(trimmedText);
+  };
+
+  const handleRefresh = () => {
+    setContributionData(generateContributionData(customText));
   };
 
   const handleInputChange = (e) => {
     const value = e.target.value.toUpperCase();
     setInputText(value);
-    
+
     // Clear error when user starts typing
     if (textError) {
       setTextError("");
@@ -227,7 +253,7 @@ const GitHubContributionGraph = () => {
 
   // Handle Enter key press
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleTextSubmit();
     }
   };
@@ -361,20 +387,16 @@ const GitHubContributionGraph = () => {
   const days = ["", "Mon", "", "Wed", "", "Fri", ""];
   const daysMobile = ["S", "M", "T", "W", "T", "F", "S"];
 
-  const themeClasses = isDark
-    ? "text-gray-100"
-    : "text-gray-900";
+  const themeClasses = isDark ? "text-gray-100" : "text-gray-900";
 
-  const containerClasses = isDark
-    ? "border-gray-700"
-    : "border-gray-300";
+  const containerClasses = isDark ? "border-gray-700" : "border-gray-200";
 
-  const textClasses = isDark ? "text-gray-200" : "text-gray-700";
+  const textClasses = isDark ? "text-gray-200" : "text-gray-800";
 
-  const mutedTextClasses = isDark ? "text-gray-500" : "text-gray-600";
+  const mutedTextClasses = isDark ? "text-gray-400" : "text-gray-600";
 
   const linkClasses = isDark
-    ? "text-gray-500 hover:text-blue-400"
+    ? "text-gray-400 hover:text-blue-400"
     : "text-gray-600 hover:text-blue-600";
 
   const tooltipClasses = isDark
@@ -402,9 +424,9 @@ const GitHubContributionGraph = () => {
 
   return (
     <div
-      className={`min-h-screen font-sans transition-all duration-500 ease-in-out ${themeClasses}`}
+      className={`min-h-screen font-sans transition-all duration-300 ease-in-out ${themeClasses}`}
       style={{
-        backgroundColor: isDark ? '#1e1e1e' : '#f9fafb'
+        backgroundColor: isDark ? "#0d1117" : "#f6f8fa",
       }}
     >
       <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 lg:px-8 max-w-7xl">
@@ -418,14 +440,11 @@ const GitHubContributionGraph = () => {
               <select
                 value={activeYear}
                 onChange={(e) => setActiveYear(e.target.value)}
-                className={`px-2 cursor-pointer py-1 rounded text-sm border transition-all duration-500 ease-in-out ${
+                className={`px-2 cursor-pointer py-1 rounded text-sm border transition-all duration-300 ease-in-out ${
                   isDark
-                    ? "border-gray-600 text-gray-200"
-                    : "border-gray-300 text-gray-800"
+                    ? "border-gray-600 text-gray-200 bg-gray-800"
+                    : "border-gray-300 text-gray-800 bg-white"
                 }`}
-                style={{
-                  backgroundColor: isDark ? '#121212' : '#ffffff'
-                }}
               >
                 <option value="2024">2024</option>
               </select>
@@ -436,28 +455,22 @@ const GitHubContributionGraph = () => {
             {isMobile && (
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className={`px-3 py-2 rounded-lg transition-all duration-500 ease-in-out text-sm flex-1 sm:flex-none ${
+                className={`px-3 py-2 rounded-lg transition-all duration-300 ease-in-out text-sm flex-1 sm:flex-none ${
                   isDark
-                    ? "hover:bg-gray-700 text-gray-200"
-                    : "hover:bg-gray-300 text-gray-800"
+                    ? "bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700"
+                    : "bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300"
                 }`}
-                style={{
-                  backgroundColor: isDark ? '#121212' : '#e5e7eb'
-                }}
               >
                 {isExpanded ? "📱 Compact" : "🔍 Expand"}
               </button>
             )}
             <button
               onClick={() => setIsDark(!isDark)}
-              className={`px-3 py-2 rounded-lg max-w-28 cursor-pointer transition-all duration-500 ease-in-out text-sm flex-1 sm:flex-none ${
+              className={`px-3 py-2 rounded-lg max-w-28 cursor-pointer transition-all duration-300 ease-in-out text-sm flex-1 sm:flex-none ${
                 isDark
-                  ? "hover:bg-gray-700 text-gray-200"
-                  : "hover:bg-gray-300 text-gray-800"
+                  ? "bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700"
+                  : "bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300"
               }`}
-              style={{
-                backgroundColor: isDark ? '#121212' : '#e5e7eb'
-              }}
             >
               {isDark ? "🌞 Light" : "🌙 Dark"}
             </button>
@@ -466,9 +479,9 @@ const GitHubContributionGraph = () => {
 
         {/* Custom Text Input Section */}
         <div
-          className={`border rounded-lg p-4 mb-4 sm:mb-6 transition-all duration-500 ease-in-out ${containerClasses}`}
+          className={`border rounded-lg p-4 mb-4 sm:mb-6 transition-all duration-300 ease-in-out ${containerClasses}`}
           style={{
-            backgroundColor: isDark ? '#121212' : '#ffffff'
+            backgroundColor: isDark ? "#161b22" : "#ffffff",
           }}
         >
           <h3 className={`text-lg font-semibold mb-3 ${textClasses}`}>
@@ -482,41 +495,52 @@ const GitHubContributionGraph = () => {
                 onChange={handleInputChange}
                 onKeyDown={handleKeyPress}
                 placeholder="Enter your text (letters, numbers, spaces) - Press Enter to update"
-                className={`w-full px-3 py-2 rounded border text-sm transition-all duration-500 ease-in-out ${
+                className={`w-full px-3 py-2 rounded border text-sm transition-all duration-300 ease-in-out ${
                   isDark
-                    ? "border-gray-600 text-gray-200 placeholder-gray-400"
-                    : "border-gray-300 text-gray-800 placeholder-gray-500"
+                    ? "border-gray-600 text-gray-200 placeholder-gray-500 bg-gray-900"
+                    : "border-gray-300 text-gray-800 placeholder-gray-500 bg-white"
                 } ${textError ? "border-red-500" : ""}`}
-                style={{
-                  backgroundColor: isDark ? '#1e1e1e' : '#ffffff'
-                }}
                 maxLength={50}
               />
               {textError && (
                 <p className="text-red-500 text-xs mt-1">{textError}</p>
               )}
               <p className={`text-xs mt-1 ${mutedTextClasses}`}>
-                Currently showing: "{customText}" | Max recommended: ~15 characters | Press Enter to update
+                Currently showing: "{customText}" | Max recommended: ~15
+                characters | Press Enter to update
               </p>
             </div>
-            <button
-              onClick={handleTextSubmit}
-              className={`px-4 py-2 my-auto rounded-lg text-sm font-medium transition-all duration-500 ease-in-out ${
-                isDark
-                  ? "bg-blue-600 hover:bg-blue-700 text-white"
-                  : "bg-blue-500 hover:bg-blue-600 text-white"
-              }`}
-            >
-              Update Graph
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={handleRefresh}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out ${
+                  isDark
+                    ? "bg-gray-700 hover:bg-gray-600 text-gray-300 border border-gray-600"
+                    : "bg-gray-200 hover:bg-gray-300 text-gray-700 border border-gray-300"
+                }`}
+                title="Refresh pattern with same text"
+              >
+                🔄
+              </button>
+              <button
+                onClick={handleTextSubmit}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ease-in-out shadow-sm ${
+                  isDark
+                    ? "bg-blue-600 hover:bg-blue-700 text-white border border-blue-500"
+                    : "bg-blue-500 hover:bg-blue-600 text-white border border-blue-400"
+                }`}
+              >
+                Update Graph
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Stats bar */}
         <div
-          className={`flex flex-wrap items-center justify-between mb-4 sm:mb-6 p-3 sm:p-4 rounded-lg ${containerClasses} border transition-all duration-500 ease-in-out`}
+          className={`flex flex-wrap items-center justify-between mb-4 sm:mb-6 p-3 sm:p-4 rounded-lg ${containerClasses} border transition-all duration-300 ease-in-out`}
           style={{
-            backgroundColor: isDark ? '#121212' : '#ffffff'
+            backgroundColor: isDark ? "#161b22" : "#ffffff",
           }}
         >
           <div className={`text-sm font-normal ${textClasses} mb-2 sm:mb-0`}>
@@ -532,9 +556,9 @@ const GitHubContributionGraph = () => {
         </div>
 
         <div
-          className={`border rounded-lg p-3 sm:p-6 transition-all duration-500 ease-in-out ${containerClasses} overflow-hidden`}
+          className={`border rounded-lg p-3 sm:p-6 transition-all duration-300 ease-in-out ${containerClasses} overflow-hidden`}
           style={{
-            backgroundColor: isDark ? '#121212' : '#ffffff'
+            backgroundColor: isDark ? "#161b22" : "#ffffff",
           }}
         >
           <div className="flex items-baseline justify-between mb-4">
@@ -742,14 +766,11 @@ const GitHubContributionGraph = () => {
           {/* Selected cell info */}
           {selectedCell && (
             <div
-              className={`mt-4 p-3 rounded-lg border transition-all duration-500 ease-in-out ${
+              className={`mt-4 p-3 rounded-lg border transition-all duration-300 ease-in-out ${
                 isDark
-                  ? "border-gray-600"
-                  : "border-gray-200"
+                  ? "border-gray-600 bg-gray-800"
+                  : "border-gray-200 bg-gray-50"
               }`}
-              style={{
-                backgroundColor: isDark ? '#1e1e1e' : '#f9fafb'
-              }}
             >
               <div className={`text-sm ${textClasses}`}>
                 <strong>Selected:</strong>{" "}
@@ -779,16 +800,16 @@ const GitHubContributionGraph = () => {
       {/* Enhanced Tooltip */}
       {tooltip.show && (
         <div
-          className={`fixed px-3 py-2 rounded-md text-xs whitespace-nowrap z-50 pointer-events-none transition-all duration-200 border ${tooltipClasses}`}
+          className={`fixed px-3 py-2 rounded-md text-xs whitespace-nowrap z-50 pointer-events-none transition-all duration-200 ${tooltipClasses}`}
           style={{
-            left: `${tooltip.x}px`,
-            top: `${tooltip.y}px`,
-            transform: "translateX(-50%)",
+            left: tooltip.x,
+            top: tooltip.y,
+            transform: "translateX(-50%) translateY(-100%)",
           }}
         >
           {tooltip.content}
           <div
-            className={`absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent ${tooltipArrowClasses}`}
+            className={`absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent ${tooltipArrowClasses}`}
           />
         </div>
       )}
